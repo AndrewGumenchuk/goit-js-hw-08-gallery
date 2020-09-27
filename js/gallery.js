@@ -1,97 +1,64 @@
-import galleryItems from './gallery-items';
+import galleryItems from './gallery-items.js';
 
-const galleryContainer = document.querySelector('.js-gallery');
-const modal = document.querySelector('.js-lightbox');
-const modalImg = document.querySelector('.lightbox__image');
-const modalContent = document.querySelector('.lightbox__image');
-const overlay = document.querySelector('.lightbox__overlay');
-const modalBtnClose = document.querySelector('.lightbox__button');
-const modalBtnRight = document.querySelector('.scroll-right');
-const modalBtnLeft = document.querySelector('.scroll-left');
+const galleryEl = document.querySelector('.js-gallery');
+const modalEl = document.querySelector('.js-lightbox');
+const overlayEl = document.querySelector('.lightbox__overlay');
+const modalImgEl = document.querySelector('.lightbox__image');
+const closeBtnEl = document.querySelector('.lightbox__button');
 
-galleryContainer.addEventListener('click', modalOpen);
-overlay.addEventListener('click', modalCloseByOverlayClick);
-document.addEventListener('keydown', modalCloseByEsc);
-modalBtnClose.addEventListener('click', modalClose);
-window.addEventListener('keydown', modalImgScrolling);
-modalBtnRight.addEventListener('click', modalImgScrolling);
-modalBtnLeft.addEventListener('click', modalImgScrolling);
-modalContent.addEventListener('click', modalImgScrolling);
+const galleryListEl = createGalleryList(galleryItems);
 
-function galleryCardMarkup(img) {
+galleryEl.insertAdjacentHTML('beforeend', galleryListEl);
+
+galleryEl.addEventListener('click', onOpenModal);
+closeBtnEl.addEventListener('click', onCloseModal);
+overlayEl.addEventListener('click', onCloseModalOnOverlay);
+
+function createGalleryList(img) {
   return img
-    .map(({ preview, original, description }) => {
+    .map(({ original, description, preview }) => {
       return `<li class="gallery__item">
-                    <a class="gallery__link"
-                     href=${original}>
-                         <img class="gallery__image"
-                          src=${preview}
-                          data-source=${original}
-                          alt=${description} />
-                    </a>
-                    </li>`;
+    <a
+      class="gallery__link"
+      href="${original}"
+    >
+      <img
+        class="gallery__image"
+        src="${preview}"
+        data-source="${original}"
+        alt="${description}"
+      />
+    </a>
+  </li>`;
     })
     .join('');
 }
 
-galleryContainer.insertAdjacentHTML(
-  'beforeend',
-  galleryCardMarkup(galleryItems),
-);
-
-function modalOpen(event) {
+function onOpenModal(event) {
   event.preventDefault();
-
   if (event.target.nodeName !== 'IMG') {
     return;
   }
-  modal.classList.add('is-open');
-  modalImg.src = event.target.dataset.source;
-  modalImg.alt = event.target.alt;
+  document.addEventListener('keydown', onCloseModalByEsc);
+
+  modalEl.classList.add('is-open');
+  modalImgEl.src = event.target.dataset.source;
+  modalImgEl.alt = event.target.alt;
 }
 
-function modalClose(event) {
-  modal.classList.remove('is-open');
+function onCloseModal(event) {
+  document.removeEventListener('keydown', onCloseModalByEsc);
+  modalEl.classList.remove('is-open');
+  modalImgEl.src = '';
 }
-
-function modalCloseByEsc(event) {
-  if (event.code === 'Escape') {
-    modalClose(event);
-  }
-}
-
-function modalCloseByOverlayClick(event) {
+function onCloseModalOnOverlay(event) {
   if (event.currentTarget === event.target) {
-    modalClose(event);
+    onCloseModal();
   }
 }
 
-function modalImgScrolling(event) {
-  let imgIndex = galleryItems.findIndex(img => img.original === modalImg.src);
-
-  if (
-    event.code === 'ArrowLeft' ||
-    event.code === 'ArrowDown' ||
-    modalBtnLeft === event.target
-  ) {
-    if (imgIndex === 0) {
-      imgIndex += galleryItems.length;
-    }
-    imgIndex -= 1;
+function onCloseModalByEsc(event) {
+  if (event.code === 'Escape') {
+    onCloseModal();
   }
-
-  if (
-    event.code === 'ArrowRight' ||
-    event.code === 'ArrowUp' ||
-    modalBtnRight === event.target ||
-    modalContent === event.target
-  ) {
-    if (imgIndex === galleryItems.length - 1) {
-      imgIndex -= galleryItems.length;
-    }
-    imgIndex += 1;
-  }
-
-  modalImg.src = galleryItems[imgIndex].original;
-  modalImg.alt = galleryItems[imgIndex].description;
 }
