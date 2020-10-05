@@ -50,6 +50,7 @@ function onCloseModal(event) {
   document.removeEventListener('keydown', onCloseModalByEsc);
   modalEl.classList.remove('is-open');
   modalImgEl.src = '';
+  modalImgEl.alt = '';
 }
 function onCloseModalOnOverlay(event) {
   if (event.currentTarget === event.target) {
